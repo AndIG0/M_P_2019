@@ -18,10 +18,14 @@ int main(int argc, char **argv){
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 	string sObjectNumber;
+	string path;
 
-
-		 src = imread("car_on_the_road2.jpg", 1);
-
+		
+	cout << "Input file's name: ";
+	cin >> path;
+	src = imread(path, 1);
+	
+	Mat sc = src.clone();
 				 
 		 cvtColor(src, srcGray, COLOR_BGR2GRAY);
 		 blur(srcGray, srcGray, Size(3, 3));
@@ -58,11 +62,13 @@ int main(int argc, char **argv){
 
 				 for (int i = 0; i < contours.size(); i++) {
 
-					 sContourNumber << "(" << round(mc[i].x) << ";" << round(mc[i].y) << ")";
+					 sContourNumber << "(" << round(mc[i].x) << ";" << round(mc[i].y) << ") lenght = "<< contours[i].size(); 
 					 sObjectNumber = sContourNumber.str();
 
 					 Point pCoordinates(mc[i].x + 5, mc[i].y - 7);
 					 Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+
+					 cout <<" Contour № "<<  i << "Center mass: (" << mc[i].x << "; "<< mc[i].y<< ") Lenght = " << contours[i].size() <<endl;
 
 					 drawContours(src, contours, i, color, 2, 8, hierarchy, 0, Point());
 					 drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, Point());
@@ -72,7 +78,7 @@ int main(int argc, char **argv){
 
 					 putText(src, sObjectNumber, pCoordinates, FONT_HERSHEY_COMPLEX, 1, color, 2, 8);
 					 putText(drawing, sObjectNumber, pCoordinates, FONT_HERSHEY_COMPLEX, 1, color, 2, 8);
-
+					 
 					 sContourNumber.str("");
 					 sContourNumber.clear();
 
@@ -85,7 +91,7 @@ int main(int argc, char **argv){
 
 				 imshow("OriginalWithContours",src);
 				 imshow("Contours", drawing);
-
+				 imshow("Original", sc);
 				 imwrite("result.jpg", drawing);
 
 				 waitKey(0);
