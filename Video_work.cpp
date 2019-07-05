@@ -11,7 +11,7 @@ using namespace cv;
 
 
 
-#define VIDEO_PATH "sd.mp4"
+
 
 int main(){
 	
@@ -22,11 +22,14 @@ int main(){
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 	string sObjectNumber;
+	string path;
+
+	cout << "Input video's name" << endl;
+	cin >> path;
 	
-	
-	if (!videoSource.open(VIDEO_PATH))
+	if (!videoSource.open(path))
 	{
-		std::cout << "Video not found at " << VIDEO_PATH << std::endl;
+		std::cout << "Video not found at " << path << std::endl;
 		return 1;     
 	}
 	videoSource.set(CAP_PROP_CONVERT_RGB, 1);
@@ -73,31 +76,57 @@ int main(){
 			mc[i] = Point2f(mu[i].m10 / mu[i].m00, mu[i].m01 / mu[i].m00);
 		}
 
-
-		ostringstream sContourNumber;
+		
 
 		for (int i = 0; i < contours.size(); i++)
 		{
+			if (contourArea(contours[i]) > 100) {
 
-			if (contourArea(contours[i]) > 80) {
+				ostringstream sContourNumber;
+				vector<Point> _points;
+				double len = arcLength(Mat(contours[i]), true);
+				
+				approxPolyDP(contours[i], _points, len*0.02, true);
+				Moments m = moments(_points);
+				Point centm(m.m10 / m.m00, m.m01 / m.m00);
 				
 				sContourNumber << "(" << round(mc[i].x) << ";" << round(mc[i].y) << ")";
 				sObjectNumber = sContourNumber.str();
 
 				Point pCoordinates(mc[i].x + 5, mc[i].y - 7);
-				Scalar color = Scalar(0,0,0);
+				Scalar color = Scalar(0, 0, 0);
 
 				drawContours(frame, contours, i, color, 2, 8, hierarchy, 0, Point());
 				circle(frame, mc[i], 4, color, -1, 8, 0);
 				putText(frame, sObjectNumber, pCoordinates, FONT_HERSHEY_COMPLEX, 1, color, 1, 8);
+				
+				cout << "Contour № " << i  << " Center mass: (" << mc[i].x << "; " << mc[i].y << ") Lenght = " << contours.size() << endl;
+				
+				if (_points.size() == 4)
+				{
+					drawContours(frame, vector<vector<Point>>{_points}, 0, Scalar(255, 255, 0), 2);
+					
+					}
+			
+				if (_points.size() == 3)
+				{
+					drawContours(frame, vector<vector<Point>>{_points}, 0, Scalar(0, 255, 255), 2);
+					
+					
+				}
+				
+				if (_points.size() > 4 || _points.size() < 3)
+				{
+					Point2f cent;
+					float rad;
+					minEnclosingCircle(contours[i], cent, rad);
 
-				sContourNumber.str("");
-				sContourNumber.clear();
+					circle(frame, cent, rad, Scalar(0, 255, 0), 2);
 
+					
+				}
 			}
 		}
-
-
 		imshow("frame", frame);
 		
 		waitKey(1);
